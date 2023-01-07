@@ -1,0 +1,104 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <title>Edit</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.0/css/bootstrap.min.css" rel="stylesheet" />
+    <link href="../css/Style.css" rel="stylesheet">
+    <script type="text/javascript" src="../js/GetDataForControllers.js"></script>
+</head>
+<body>
+    <div class="container">
+        <div class="row">
+            <div class="col-md-5">
+                <h3>Редактирование записи</h3>
+                <hr />
+                <form name="companyForm">
+                    <input type="hidden" name="id" value="" />
+                    <div class="form-floating mb-2">
+                        Название: <input asp-for="Name" class="form-control" name="name" />
+                    </div>
+                    <div class="form-floating mb-2">
+                        ФИО: <input asp-for="Fio" class="form-control" name="fio" />
+                    </div>
+                    <div class="form-floating mb-2">
+                        Форма собственности: <select asp-for="OwnershipFormId" class="form-control" name="ownershipForm"></select>
+                    </div>
+                    <div class="form-floating mb-3">
+                        Вид деятельности: <select asp-for="ActivityTypeId" class="form-control" name="activityType"></select>
+                    </div>
+                    <div class="form-floating">
+                        <input type="submit" id="submit" value="Сохранить" class="btn btn-secondary" />
+                        <a href="index.html" class="btn btn-primary">Вернуться назад</a>
+                        <input type="reset" value="Сбросить" class="btn btn-primary">
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+    <script>
+		window.onload = function () {
+            GetAllActivityTypes();
+            GetAllOwnerships();
+            GetCompanyById();
+		}
+
+		//Функция получения данных по id
+		async function GetCompanyById() {
+			const id = localStorage.getItem('id');
+			const response = await fetch("/api/company/" + id, {
+				method: "GET",
+				headers: { "Accept": "application/json" }
+			});
+			if (response.ok === true) {
+                const company = await response.json();
+
+                const form = document.forms["companyForm"];
+                form.elements["id"].value = id;
+                form.elements["name"].value = company.name;
+                form.elements["fio"].value = company.fio;
+                form.elements["ownershipForm"].value = company.ownershipFormId;
+                form.elements["activityType"].value = company.activityTypeId;
+			}
+        }
+
+        //Функция редактирования по id
+        async function EditCompanyById(id, name, fio, ownershipFormId, activityTypeId) {
+            const response = await fetch("/api/company/", {
+                method: "PUT",
+                headers: { "Accept": "application/json", "Content-Type": "application/json" },
+				body: JSON.stringify({
+                    id: parseInt(id, 10),
+					name: name,
+                    fio: fio,
+                    ownershipFormId: parseInt(ownershipFormId, 10),
+                    activityTypeId: parseInt(activityTypeId, 10)
+				})
+            });
+            if (response.ok === true) {
+                alert("Успешное редактирование");
+                window.location = "index.html";
+            }
+            else {
+                alert("Ошибка редактирования");
+            }
+        }
+
+        //Обработчик клика на кнопку(Редактирвоать) в форме
+        document.forms["companyForm"].addEventListener("submit", e => {
+			e.preventDefault();
+            const form = document.forms["companyForm"];
+
+            const id = form.elements["id"].value;
+			const name = form.elements["name"].value;
+
+            const ownershipFormId = form.elements["ownershipForm"].value;
+			const fio = form.elements["fio"].value;
+            const activityTypeId = form.elements["activityType"].value;
+
+            EditCompanyById(id, name, fio, ownershipFormId, activityTypeId);
+		});
+
+    </script>
+</body>
+</html>
